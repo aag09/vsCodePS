@@ -4,12 +4,16 @@ import { LanguageClient, RequestType, NotificationType } from 'vscode-languagecl
 import Window = vscode.window;
 import { IFeature } from '../feature';
 
-export class CodeActionsFeature implements IFeature {
+export namespace GetAstRequest {
+    export const type: RequestType<any, any, void> = { get method(): string { return "powerShell/getAst"; } };
+}
+
+export class ShowAstFeature implements IFeature {
     private command: vscode.Disposable;
     private languageClient: LanguageClient;
 
     constructor() {
-        vscode.window.registerTreeExplorerNodeProvider('psAstProvider', new AstNodeProvider(vscode.window.activeTextEditor.document.fileName));
+        vscode.window.registerTreeExplorerNodeProvider('psAstProvider', new AstNodeProvider(this.languageClient));
     }
 
     public setLanguageClient(languageclient: LanguageClient) {
@@ -22,30 +26,65 @@ export class CodeActionsFeature implements IFeature {
 }
 
 class AstNodeProvider implements TreeExplorerNodeProvider<AstNode> {
-    constructor(filePath: string) {
+    rootNode: AstNode;
+    languageClient: LanguageClient;
+    constructor(languageClient: LanguageClient) {
+        this.languageClient = languageClient;
     }
 
     getLabel(node: AstNode): string {
-        throw new Error();
+        return node.item.label;
     }
 
     getHasChildren(node: AstNode): boolean {
-        throw new Error();
+        return node.children.length > 0;
     }
 
     getClickCommand(node: AstNode): string {
-        throw new Error();
+        return node.item.id;
     }
 
     provideRootNode(): AstNode {
-        throw new Error();
+        return { item: { ast: null, id: null, label: "root"}, children: [] };
     }
 
     resolveChildren(node: AstNode): Thenable<AstNode[]> {
-        throw new Error();
+        return new Promise((resolve) => {
+            if (node.item.label == 'root')
+            {
+                if (this.languageClient === undefined)
+                {
+                    resolve([]);
+                }
+                else
+                {
+                    this.languageClient.sendRequest(GetAstRequest.type, vscode.window.activeTextEditor.document.fileName).then((result) => {
+                        resolve(result.children);
+                    });
+                }
+            }
+            else
+            {
+                if (node.children.length > 0)
+                {
+                    resolve(node.children);
+                }
+                else
+                {
+                    resolve([]);
+                }
+            }
+        })
     }
 }
 
 class AstNode {
+    item: NodeItem;
+    children: AstNode[];
+}
 
+class NodeItem {
+    ast: any;
+    label: string;
+    id: string;
 }
