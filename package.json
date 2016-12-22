@@ -47,6 +47,10 @@
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "contributes": {
+        "explorer": {
+            "treeLabel": "Abstract Syntax Tree",
+            "treeExplorerNodeProviderId": "psAstProvider"
+        },
         "keybindings": [
             {
                 "command": "PowerShell.OnlineHelp",
