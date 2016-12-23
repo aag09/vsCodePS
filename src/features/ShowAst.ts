@@ -5,19 +5,22 @@ import Window = vscode.window;
 import { IFeature } from '../feature';
 
 export namespace GetAstRequest {
-    export const type: RequestType<any, any, void> = { get method(): string { return "powerShell/getAst"; } };
+    export const type: RequestType<string, any, void> = { get method(): string { return "powerShell/getAst"; } };
 }
 
 export class ShowAstFeature implements IFeature {
     private command: vscode.Disposable;
     private languageClient: LanguageClient;
+    private astNodeProvider: AstNodeProvider;
 
     constructor() {
-        vscode.window.registerTreeExplorerNodeProvider('psAstProvider', new AstNodeProvider(this.languageClient));
+        this.astNodeProvider = new AstNodeProvider();
+        vscode.window.registerTreeExplorerNodeProvider('psAstProvider', this.astNodeProvider);
     }
 
     public setLanguageClient(languageclient: LanguageClient) {
         this.languageClient = languageclient;
+        this.astNodeProvider.setLanguageClient(languageclient);
     }
 
     public dispose() {
@@ -28,53 +31,38 @@ export class ShowAstFeature implements IFeature {
 class AstNodeProvider implements TreeExplorerNodeProvider<AstNode> {
     rootNode: AstNode;
     languageClient: LanguageClient;
-    constructor(languageClient: LanguageClient) {
-        this.languageClient = languageClient;
-    }
 
     getLabel(node: AstNode): string {
-        return node.item.label;
+        return `${ node.item.label } [${ node.item.extent.startLineNumber }, ${ node.item.extent.endLineNumber }]`;
     }
 
     getHasChildren(node: AstNode): boolean {
-        return node.children.length > 0;
+            return node.children.length > 0;
     }
 
     getClickCommand(node: AstNode): string {
         return node.item.id;
     }
 
-    provideRootNode(): AstNode {
-        return { item: { ast: null, id: null, label: "root"}, children: [] };
+    provideRootNode(): Thenable<AstNode> {
+        return this.languageClient.sendRequest(GetAstRequest.type, vscode.window.activeTextEditor.document.fileName).then((result) => {
+                return result;
+        });
     }
 
     resolveChildren(node: AstNode): Thenable<AstNode[]> {
         return new Promise((resolve) => {
-            if (node.item.label == 'root')
-            {
-                if (this.languageClient === undefined)
-                {
-                    resolve([]);
-                }
-                else
-                {
-                    this.languageClient.sendRequest(GetAstRequest.type, vscode.window.activeTextEditor.document.fileName).then((result) => {
-                        resolve(result.children);
-                    });
-                }
+            if (node.children.length > 0) {
+                resolve(node.children);
             }
-            else
-            {
-                if (node.children.length > 0)
-                {
-                    resolve(node.children);
-                }
-                else
-                {
-                    resolve([]);
-                }
+            else {
+                resolve([]);
             }
-        })
+        });
+    }
+
+    setLanguageClient(languageclient: LanguageClient) {
+        this.languageClient = languageclient;
     }
 }
 
@@ -84,7 +72,7 @@ class AstNode {
 }
 
 class NodeItem {
-    ast: any;
+    extent: any;
     label: string;
     id: string;
 }
