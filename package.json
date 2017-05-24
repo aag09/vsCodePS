@@ -29,6 +29,7 @@
     "onLanguage:powershell",
     "onCommand:PowerShell.NewProjectFromTemplate",
     "onCommand:PowerShell.OpenExamplesFolder",
+    "onCommand:PowerShell.OpenProfileScript",
     "onCommand:PowerShell.StartDebugSession",
     "onCommand:PowerShell.PickPSHostProcess",
     "onCommand:PowerShell.SpecifyScriptArgs",
@@ -108,6 +109,11 @@
       {
         "command": "PowerShell.OpenInISE",
         "title": "Open Current File in PowerShell ISE",
+        "category": "PowerShell"
+      },
+      {
+        "command": "PowerShell.OpenProfileScript",
+        "title": "Open PowerShell Profile Script",
         "category": "PowerShell"
       },
       {

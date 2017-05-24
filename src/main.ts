@@ -15,7 +15,11 @@ import { PowerShellLanguageId } from './utils';
 import { ConsoleFeature } from './features/Console';
 import { ExamplesFeature } from './features/Examples';
 import { OpenInISEFeature } from './features/OpenInISE';
+<<<<<<< HEAD
 import { CustomViewsFeature } from './features/CustomViews';
+=======
+import { OpenProfileFeature } from './features/OpenProfile';
+>>>>>>> Finished impl of OpenProfile feature.
 import { ExpandAliasFeature } from './features/ExpandAlias';
 import { ShowHelpFeature } from './features/ShowOnlineHelp';
 import { CodeActionsFeature } from './features/CodeActions';
@@ -109,6 +113,7 @@ export function activate(context: vscode.ExtensionContext): void {
         new ConsoleFeature(),
         new ExamplesFeature(),
         new OpenInISEFeature(),
+        new OpenProfileFeature(),
         new ExpandAliasFeature(),
         new ShowHelpFeature(),
         new FindModuleFeature(),
